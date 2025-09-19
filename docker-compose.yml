@@ -1,0 +1,87 @@
+version: '3.8'
+
+services:
+  proposta-service:
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    container_name: proposta-service
+    ports:
+      - "5000:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ASPNETCORE_HTTP_PORTS=8080
+    secrets:
+      - postgres_user
+      - postgres_password
+      - rabbitmq_user
+      - rabbitmq_password
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - proposta-network
+
+  postgres:
+    image: postgres:15
+    container_name: postgres-proposta
+    environment:
+      POSTGRES_DB: propostadb
+      POSTGRES_USER_FILE: /run/secrets/postgres_user
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    secrets:
+      - postgres_user
+      - postgres_password
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$(cat /run/secrets/postgres_user)"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - proposta-network
+
+  rabbitmq:
+    build:
+      context: .
+      dockerfile: rabbitmq/Dockerfile
+    container_name: rabbitmq-proposta
+    ports:
+      - "5672:5672"    # AMQP port
+      - "15672:15672"  # Management UI
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    secrets:
+      - rabbitmq_user
+      - rabbitmq_password
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - proposta-network
+
+secrets:
+  postgres_user:
+    file: ./secrets/postgres_user.txt
+  postgres_password:
+    file: ./secrets/postgres_password.txt
+  rabbitmq_user:
+    file: ./secrets/rabbitmq_user.txt
+  rabbitmq_password:
+    file: ./secrets/rabbitmq_password.txt
+
+volumes:
+  postgres_data:
+  rabbitmq_data:
+
+networks:
+  proposta-network:
+    driver: bridge
