@@ -64,25 +64,6 @@ microservices-network (Docker Network)
     └── start-all.sh             # Script principal (Linux/Mac)
 ```
 
-### 🗑️ **Arquivos Removidos (Não Essenciais)**
-
-Para manter o workspace limpo e focado apenas no essencial, os seguintes arquivos foram removidos:
-
-- ❌ `docker-compose.yml` (substituído pelo setup segregado)
-- ❌ `docker-compose.migrations.yml` (migrations são automáticas)
-- ❌ `Dockerfile.migrations*` (migrations via Program.cs)
-- ❌ `setup-secrets.*` (substituído por `setup-environment.ps1`)
-- ❌ `PropostaService.http` (arquivo de teste HTTP)
-- ❌ `PropostaService.csproj.user` (configurações específicas do VS)
-- ❌ `scripts/create-microservice.sh` (template, não essencial)
-- ❌ `scripts/run-migrations.sh` (redundante)
-- ❌ `scripts/setup-infra.sh` (redundante)
-- ❌ `scripts/start-proposta.sh` (redundante)
-- ❌ `scripts/test-demo.ps1` (problemas de codificação)
-- ❌ `scripts/test-simple.ps1` (redundante com start-all.ps1 status)
-- ❌ `bin/` e `obj/` (arquivos de build temporários)
-- ❌ `.github/` (workflows vazios)
-
 ## 🚀 Como Usar
 
 ### ⚠️ Configuração Inicial (Windows)
