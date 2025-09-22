@@ -2,7 +2,7 @@
 
 Este é um sistema de gestão de propostas implementado em .NET 8 seguindo princípios de Clean Architecture e Domain-Driven Design (DDD).
 
-## Execução do zero com Docker Compose
+## Execução com Docker Compose
 
 Siga este guia para subir todo o ambiente do zero usando Docker Compose (API, PostgreSQL e RabbitMQ). As credenciais são provisionadas via Docker Secrets através dos scripts fornecidos.
 
@@ -12,9 +12,9 @@ Siga este guia para subir todo o ambiente do zero usando Docker Compose (API, Po
 - PowerShell (Windows) ou Bash (Linux/macOS)
 
 ### Passo 1: Configurar os Docker Secrets
-Crie os arquivos de secrets locais com os scripts do repositório:
+Configure o ambiente e crie os arquivos de secrets locais com os scripts do repositório:
 - Windows (PowerShell):
-  - `./setup-secrets.ps1`
+  - `.\scripts\setup-environment.ps1`
 - Linux/macOS (Bash):
   - `bash ./setup-secrets.sh`
 
@@ -23,7 +23,7 @@ Isso criará a pasta `./secrets` com:
 - `secrets/rabbitmq_user.txt` e `secrets/rabbitmq_password.txt` (padrão: guest/guest)
 
 Observações:
-- Os scripts gravam em ASCII e sem nova linha para evitar problemas de autenticação.
+- Os scripts gravam em UTF-8 sem nova linha para evitar problemas de autenticação.
 - Em produção, substitua por credenciais seguras.
 
 ### Passo 2: Subir os serviços
@@ -59,7 +59,7 @@ Não é necessário rodar comandos manuais. A aplicação chama `context.Databas
 
 ### Solução de problemas
 - Conflito de portas: altere os mapeamentos no `docker-compose.yml` (ex.: `5000:8080`, `5432:5432`, `15672:15672`).
-- Secrets ausentes/incorretos: execute novamente `setup-secrets.ps1` ou `setup-secrets.sh`.
+- Secrets ausentes/incorretos: execute novamente `.\scripts\setup-environment.ps1`.
 - Credenciais inválidas no RabbitMQ: os scripts e a imagem customizada normalizam quebras de linha; recrie os secrets e reinicie: `docker compose down && docker compose up -d --build`.
 - Banco não inicia: remova volumes e suba novamente: `docker compose down -v && docker compose up -d --build`.
 

@@ -1,33 +1,7 @@
-version: '3.8'
-
 services:
-  proposta-service:
-    build: 
-      context: .
-      dockerfile: Dockerfile
-    container_name: proposta-service
-    ports:
-      - "5000:8080"
-    environment:
-      - ASPNETCORE_ENVIRONMENT=Production
-      - ASPNETCORE_HTTP_PORTS=8080
-    secrets:
-      - postgres_user
-      - postgres_password
-      - rabbitmq_user
-      - rabbitmq_password
-    depends_on:
-      postgres:
-        condition: service_healthy
-      rabbitmq:
-        condition: service_healthy
-    restart: unless-stopped
-    networks:
-      - proposta-network
-
   postgres:
     image: postgres:15
-    container_name: postgres-proposta
+    container_name: postgres-infra
     environment:
       POSTGRES_DB: propostadb
       POSTGRES_USER_FILE: /run/secrets/postgres_user
@@ -45,13 +19,13 @@ services:
       timeout: 10s
       retries: 3
     networks:
-      - proposta-network
+      - microservices-network
 
   rabbitmq:
     build:
       context: .
       dockerfile: rabbitmq/Dockerfile
-    container_name: rabbitmq-proposta
+    container_name: rabbitmq-infra
     ports:
       - "5672:5672"    # AMQP port
       - "15672:15672"  # Management UI
@@ -66,7 +40,7 @@ services:
       timeout: 10s
       retries: 3
     networks:
-      - proposta-network
+      - microservices-network
 
 secrets:
   postgres_user:
@@ -83,5 +57,5 @@ volumes:
   rabbitmq_data:
 
 networks:
-  proposta-network:
+  microservices-network:
     driver: bridge
