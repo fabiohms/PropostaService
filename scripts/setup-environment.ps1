@@ -37,33 +37,41 @@ if (-not (Test-Path $secretsPath)) {
     New-Item -ItemType Directory -Path $secretsPath -Force
 }
 
-$missingSecrets = @()
+# Limpar arquivos existentes para evitar problemas de BOM
 foreach ($secret in $requiredSecrets) {
     $secretFile = Join-Path $secretsPath $secret
-    if (-not (Test-Path $secretFile)) {
-        $missingSecrets += $secret
-    } else {
-        Write-Host "[OK] $secret encontrado" -ForegroundColor Green
+    if (Test-Path $secretFile) {
+        Remove-Item $secretFile -Force
+        Write-Host "[LIMPEZA] Removido arquivo existente: $secret" -ForegroundColor Yellow
     }
 }
 
-if ($missingSecrets.Count -gt 0) {
-    Write-Host "[AVISO] Arquivos de secrets ausentes:" -ForegroundColor Yellow
-    foreach ($missing in $missingSecrets) {
-        Write-Host "  - $missing" -ForegroundColor Red
+Write-Host "[INFO] Criando arquivos de secrets sem BOM..." -ForegroundColor Cyan
+
+# Criar arquivos de secrets com valores de compatibilidade (sem BOM)
+[System.IO.File]::WriteAllText((Join-Path $secretsPath "postgres_user.txt"), "postgres", [System.Text.Encoding]::ASCII)
+[System.IO.File]::WriteAllText((Join-Path $secretsPath "postgres_password.txt"), "postgres", [System.Text.Encoding]::ASCII)
+[System.IO.File]::WriteAllText((Join-Path $secretsPath "rabbitmq_user.txt"), "guest", [System.Text.Encoding]::ASCII)
+[System.IO.File]::WriteAllText((Join-Path $secretsPath "rabbitmq_password.txt"), "guest", [System.Text.Encoding]::ASCII)
+
+Write-Host "[CRIADO] Arquivos de secrets criados com valores de compatibilidade:" -ForegroundColor Green
+Write-Host "  - PostgreSQL: postgres/postgres" -ForegroundColor White
+Write-Host "  - RabbitMQ: guest/guest" -ForegroundColor White
+
+# Verificar arquivos foram criados corretamente
+Write-Host "[VERIFICACAO] Validando arquivos criados..." -ForegroundColor Yellow
+foreach ($secret in $requiredSecrets) {
+    $secretFile = Join-Path $secretsPath $secret
+    if (Test-Path $secretFile) {
+        $content = [System.IO.File]::ReadAllText($secretFile, [System.Text.Encoding]::ASCII)
+        $size = (Get-Item $secretFile).Length
+        Write-Host "[OK] $secret ($size bytes): '$content'" -ForegroundColor Green
+    } else {
+        Write-Host "[ERRO] $secret (ausente)" -ForegroundColor Red
     }
-    Write-Host ""
-    Write-Host "[INFO] Criando arquivos de exemplo..." -ForegroundColor Cyan
-    
-    # Criar arquivos de exemplo
-    "postgres" | Out-File -FilePath (Join-Path $secretsPath "postgres_user.txt") -Encoding UTF8 -NoNewline
-    "postgres123" | Out-File -FilePath (Join-Path $secretsPath "postgres_password.txt") -Encoding UTF8 -NoNewline
-    "rabbitmq" | Out-File -FilePath (Join-Path $secretsPath "rabbitmq_user.txt") -Encoding UTF8 -NoNewline
-    "rabbitmq123" | Out-File -FilePath (Join-Path $secretsPath "rabbitmq_password.txt") -Encoding UTF8 -NoNewline
-    
-    Write-Host "[CRIADO] Arquivos de secrets criados com valores padrao" -ForegroundColor Green
-    Write-Host "[AVISO] ALTERE as senhas em producao!" -ForegroundColor Yellow
 }
+
+Write-Host "[AVISO] ALTERE as senhas em producao!" -ForegroundColor Yellow
 
 Write-Host ""
 Write-Host "[SUCESSO] Ambiente configurado com sucesso!" -ForegroundColor Green

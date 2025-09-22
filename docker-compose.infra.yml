@@ -10,9 +10,8 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-    secrets:
-      - postgres_user
-      - postgres_password
+      - ./secrets/postgres_user.txt:/run/secrets/postgres_user:ro
+      - ./secrets/postgres_password.txt:/run/secrets/postgres_password:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U $$(cat /run/secrets/postgres_user)"]
       interval: 30s
@@ -31,9 +30,8 @@ services:
       - "15672:15672"  # Management UI
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
-    secrets:
-      - rabbitmq_user
-      - rabbitmq_password
+      - ./secrets/rabbitmq_user.txt:/run/secrets/rabbitmq_user:ro
+      - ./secrets/rabbitmq_password.txt:/run/secrets/rabbitmq_password:ro
     healthcheck:
       test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
       interval: 30s
@@ -41,16 +39,6 @@ services:
       retries: 3
     networks:
       - microservices-network
-
-secrets:
-  postgres_user:
-    file: ./secrets/postgres_user.txt
-  postgres_password:
-    file: ./secrets/postgres_password.txt
-  rabbitmq_user:
-    file: ./secrets/rabbitmq_user.txt
-  rabbitmq_password:
-    file: ./secrets/rabbitmq_password.txt
 
 volumes:
   postgres_data:
